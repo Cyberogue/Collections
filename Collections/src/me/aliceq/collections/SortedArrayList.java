@@ -33,9 +33,9 @@ import java.util.Collection;
  */
 public class SortedArrayList<E extends Comparable> extends AbstractSortedList<E> {
 
-    private final int sortMode;
-    private int size = 0;
-    private E[] data;
+    protected final int sortMode;
+    protected int size = 0;
+    protected E[] data;
 
     /**
      * Basic constructor creating an empty SortedArrayList in ascending order
@@ -117,13 +117,6 @@ public class SortedArrayList<E extends Comparable> extends AbstractSortedList<E>
         }
     }
 
-    /**
-     * Adds an item into the list at an index defined by its positionOf.
-     * Complexity varies between O(Logn) and O(n)
-     *
-     * @param e item to add
-     * @return true
-     */
     @Override
     public boolean add(E e) {
         // Increment count
@@ -176,7 +169,7 @@ public class SortedArrayList<E extends Comparable> extends AbstractSortedList<E>
     public void clear() {
         // Increment count
         modCount++;
-        
+
         size = 0;
     }
 
@@ -295,5 +288,20 @@ public class SortedArrayList<E extends Comparable> extends AbstractSortedList<E>
         }
         s += (isAscending() ? "}" : "]");
         return s;
+    }
+
+    public static void main(String[] args) {
+        SortedArrayList<Character> list = new SortedArrayList();
+        System.out.println(list);
+
+        java.util.Random r = new java.util.Random();
+        for (int i = 0; i < 30; i++) {
+            char c = (char) ('a' + r.nextInt(26));
+            list.add(c);
+        }
+        System.out.println(list);
+        System.out.println(list.cloneReverse());
+
+        System.out.println(list.cloneRange(2, 5));
     }
 }
