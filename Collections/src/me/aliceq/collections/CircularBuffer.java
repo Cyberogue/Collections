@@ -24,9 +24,140 @@
 package me.aliceq.collections;
 
 /**
+ * A circular buffer is a fixed-size queue with a circular data implementation.
  *
  * @author Alice Quiros <email@aliceq.me>
+ * @param <E> the type of elements in this structure
  */
-public class CircularBuffer {
-    
+public class CircularBuffer<E> extends AbstractCircular<E> {
+
+    protected final E[] data;
+    protected int head, tail;
+
+    /**
+     * Creates a circular buffer. By default the buffer can hold 16 objects.
+     */
+    public CircularBuffer() {
+        this(16);
+    }
+
+    /**
+     * Creates a circular buffer
+     *
+     * @param size the size of the buffer
+     */
+    public CircularBuffer(int size) {
+        this.data = (E[]) new Object[size];
+        this.head = 0;
+        this.tail = 0;
+        this.modCount = 0;
+    }
+
+    @Override
+    public int count() {
+        int rtail = relativeTail();
+        return head - rtail;
+    }
+
+    @Override
+    public boolean isFull() {
+        return count() == data.length;
+    }
+
+    @Override
+    public int head() {
+        return head;
+    }
+
+    @Override
+    public int tail() {
+        return tail;
+    }
+
+    @Override
+    public synchronized void push(E e) {
+        if (isFull()) {
+            throw new IllegalStateException("Adding to full buffer");
+        } else if (head >= data.length) {
+            head = 0;
+        }
+        data[head++] = e;
+        modCount++;
+    }
+
+    @Override
+    public synchronized E pop() {
+        if (isEmpty()) {
+            throw new IllegalStateException("Removing from empty buffer");
+        } else if (tail >= data.length) {
+            tail = 0;
+        }
+        E e = data[tail];
+        data[tail] = null;
+        tail++;
+        modCount++;
+        return e;
+    }
+
+    @Override
+    public synchronized E element(int index) {
+        if (index < 0 || index > count()) {
+            throw new IndexOutOfBoundsException();
+        }
+
+        int i = tail + index;
+        if (i >= data.length) {
+            i -= data.length;
+        }
+        return data[i];
+    }
+
+    @Override
+    public void clear() {
+        tail = 0;
+        head = 0;
+    }
+
+    @Override
+    public String toString() {
+        if (tail == head || data.length == 0) {
+            return "{}";
+        }
+        int index = tail >= data.length ? tail - data.length : tail;
+        String s = "{" + data[index++];
+        while (index != head) {
+            if (index >= data.length) {
+                index -= data.length;
+            }
+            s += "," + data[index++];
+        }
+        s += "}";
+        return s;
+    }
+
+    /**
+     * The tail pointer relative to the head pointer. This makes sure that tail
+     * remains less than head.
+     *
+     * @return a new tail pointer lower than head
+     */
+    public int relativeTail() {
+        if (tail <= head) {
+            return tail;
+        } else {
+            return tail - data.length;
+        }
+    }
+
+    public static void main(String[] args) {
+        Circular<Character> b = new CircularBuffer(4);
+        java.util.Random r = new java.util.Random();
+
+        b.push('a');
+        b.push('a');
+        b.push('a');
+        b.push('a');
+        b.push('a');
+        b.push('a');
+    }
 }
