@@ -23,8 +23,8 @@
  */
 package me.aliceq.collections;
 
-import java.io.Serializable;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.ListIterator;
 import java.util.RandomAccess;
 
@@ -44,7 +44,15 @@ import java.util.RandomAccess;
  * @author Alice Quiros <email@aliceq.me>
  * @param <E> the type of elements in this list
  */
-public interface SortedList<E extends Comparable> extends Collection<E>, Iterable<E>, Cloneable, RandomAccess {
+public interface SortedList<E> extends Collection<E>, Iterable<E>, Cloneable, RandomAccess {
+
+    /**
+     * Returns the comparator used when sorting through the list, or null if the
+     * list uses natural ordering
+     *
+     * @return a Comparator instance or null
+     */
+    public Comparator getComparator();
 
     /**
      * Returns the element at the specified position in this list.

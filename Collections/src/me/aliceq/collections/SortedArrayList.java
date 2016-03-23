@@ -24,6 +24,7 @@
 package me.aliceq.collections;
 
 import java.util.Collection;
+import java.util.Comparator;
 
 /**
  * A JCF-like ArrayList which maintains a sorted collection of elements.
@@ -31,8 +32,9 @@ import java.util.Collection;
  * @author Alice Quiros <email@aliceq.me>
  * @param <E> the type of elements in this list
  */
-public class SortedArrayList<E extends Comparable> extends AbstractSortedList<E> {
+public class SortedArrayList<E> extends AbstractSortedList<E> {
 
+    protected final Comparator comparator;
     protected final int sortMode;
     protected int size = 0;
     protected E[] data;
@@ -41,7 +43,7 @@ public class SortedArrayList<E extends Comparable> extends AbstractSortedList<E>
      * Basic constructor creating an empty SortedArrayList in ascending order
      */
     public SortedArrayList() {
-        this(0, true);
+        this(0, null, true);
     }
 
     /**
@@ -51,7 +53,7 @@ public class SortedArrayList<E extends Comparable> extends AbstractSortedList<E>
      * @throws IllegalArgumentException if sortMode is not equal to -1 or 1
      */
     public SortedArrayList(boolean ascending) {
-        this(0, ascending);
+        this(0, null, ascending);
     }
 
     /**
@@ -62,8 +64,36 @@ public class SortedArrayList<E extends Comparable> extends AbstractSortedList<E>
      * @param ascending true if the list is ascending, false if descending
      */
     public SortedArrayList(int initCapacity, boolean ascending) {
-        this.data = (E[]) new Comparable[initCapacity];
+        this(initCapacity, null, ascending);
+    }
+
+    /**
+     * Constructor creating an empty SortedArrayList of specified order and
+     * initial capacity
+     *
+     * @param initCapacity the initial capacity of the list
+     * @param c the comparator used to compare elements in the list
+     * @param ascending true if the list is ascending, false if descending
+     */
+    public SortedArrayList(int initCapacity, Comparator<E> c, boolean ascending) {
+        this.data = (E[]) new Object[initCapacity];
         this.sortMode = ascending ? -1 : 1;
+
+        if (c == null) {
+            this.comparator = new Comparator<E>() {
+
+                @Override
+                public int compare(E o1, E o2) {
+                    if (o1 instanceof Comparable) {
+                        return ((Comparable) o1).compareTo(o2);
+                    } else {
+                        return o2.hashCode() - o1.hashCode();
+                    }
+                }
+            };
+        } else {
+            this.comparator = c;
+        }
     }
 
     /**
@@ -73,7 +103,7 @@ public class SortedArrayList<E extends Comparable> extends AbstractSortedList<E>
      * calling the addAll method.
      */
     public SortedArrayList(Collection<? extends E> c) {
-        this(c, true);
+        this(c, null, true);
     }
 
     /**
@@ -85,7 +115,23 @@ public class SortedArrayList<E extends Comparable> extends AbstractSortedList<E>
      * @throws IllegalArgumentException if sortMode is not equal to -1 or 1
      */
     public SortedArrayList(Collection<? extends E> c, boolean ascending) {
-        this(c.size(), ascending);
+        this(c.size(), null, ascending);
+        for (E e : c) {
+            this.add(e);
+        }
+    }
+
+    /**
+     * Constructor creating a SortedArrayList initialized with a set of values
+     *
+     * @param c collection of values to add on initialization. This is done by
+     * calling the addAll method.
+     * @param comparator the comparator used to compare elements in the list
+     * @param ascending true if the list is ascending, false if descending
+     * @throws IllegalArgumentException if sortMode is not equal to -1 or 1
+     */
+    public SortedArrayList(Collection<? extends E> c, Comparator<E> comparator, boolean ascending) {
+        this(c.size(), comparator, ascending);
         for (E e : c) {
             this.add(e);
         }
@@ -183,7 +229,7 @@ public class SortedArrayList<E extends Comparable> extends AbstractSortedList<E>
 
         while (pa < pb) {
             int mid = (pa + pb) / 2;
-            int comp = data[mid] == null ? -1 : data[mid].compareTo(o) * sortMode;
+            int comp = data[mid] == null ? -1 : comparator.compare(data[mid], o) * sortMode;
 
             if (comp > 0) {
                 pa = mid + 1;
@@ -235,6 +281,11 @@ public class SortedArrayList<E extends Comparable> extends AbstractSortedList<E>
     }
 
     @Override
+    public Comparator<E> getComparator() {
+        return comparator;
+    }
+
+    @Override
     public SortedList<E> cloneReverse(int fromIndex, int toIndex) {
         if (fromIndex < 0 || fromIndex > size || toIndex < 0 || toIndex > size) {
             throw new IndexOutOfBoundsException();
@@ -277,6 +328,22 @@ public class SortedArrayList<E extends Comparable> extends AbstractSortedList<E>
     }
 
     @Override
+    public boolean contains(Object o) {
+        int index = positionOf(o);
+        return data[index].equals(o);
+    }
+
+    /**
+     * Returns a String representation of the instance. Each item in the list is
+     * printed in order between two brackets. The location of the square bracket
+     * indicates the smallest item in the list, whereas the location of the
+     * curly bracket indicates the largest item in the list. As such, a
+     * square-curly bracket sequence indicates ascending order and a
+     * curly-square bracket sequence indicates descending order.
+     *
+     * @return a String representation of the instance
+     */
+    @Override
     public String toString() {
         if (size == 0) {
             return isAscending() ? "[}" : "{]";
@@ -288,20 +355,5 @@ public class SortedArrayList<E extends Comparable> extends AbstractSortedList<E>
         }
         s += (isAscending() ? "}" : "]");
         return s;
-    }
-
-    public static void main(String[] args) {
-        SortedArrayList<Character> list = new SortedArrayList();
-        System.out.println(list);
-
-        java.util.Random r = new java.util.Random();
-        for (int i = 0; i < 30; i++) {
-            char c = (char) ('a' + r.nextInt(26));
-            list.add(c);
-        }
-        System.out.println(list);
-        System.out.println(list.cloneReverse());
-
-        System.out.println(list.cloneRange(2, 5));
     }
 }

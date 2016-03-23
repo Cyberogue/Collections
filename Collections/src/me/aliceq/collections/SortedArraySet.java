@@ -23,21 +23,27 @@
  */
 package me.aliceq.collections;
 
+import java.util.Set;
+
 /**
- * A synchronized implementation of SortedArrayList which increases its size by
- * capacityIncrement when needed. This implementation is better for thread-safe
- * implementations, however if thread-safe implementations are not needed then
- * SortedArrayList is the better option.
+ * An implementation of SortedArrayList which prevents duplicate objects from
+ * being added
  *
  * @author Alice Quiros <email@aliceq.me>
  * @param <E> the type of elements in this list
  */
-public class SortedVector<E> extends SortedArrayList<E> {
+public class SortedArraySet<E> extends SortedArrayList<E> implements Set<E> {
 
-    protected int capacityIncrement = 2;
-
+    /**
+     * Adds an element to the list at its sorted position. If the object already
+     * exists, false is returned and nothing is added.
+     *
+     * @param e object to add
+     * @return true if the object was added, false if the object already exists
+     * in the list
+     */
     @Override
-    public synchronized boolean add(E e) {
+    public boolean add(E e) {
         // Increment count
         modCount++;
 
@@ -47,10 +53,16 @@ public class SortedVector<E> extends SortedArrayList<E> {
         // Get the index to insert
         int index = positionOf(e);
 
+        // Check existance
+        if (index < size && data[index] == e) {
+            return false;
+        }
+
         // If current array isn't big enough, make a new one but only copy up to the index
         if (++size >= data.length) {
             // Increase array size
-            target = (E[]) new Comparable[data.length + capacityIncrement];
+            int newCapacity = (data.length * 3) / 2 + 1;  // Sun implementation
+            target = (E[]) new Comparable[newCapacity];
             System.arraycopy(data, 0, target, 0, index);
         }
 
@@ -64,23 +76,4 @@ public class SortedVector<E> extends SortedArrayList<E> {
         return true;
     }
 
-    @Override
-    public synchronized E get(int index) {
-        return super.get(index);
-    }
-
-    @Override
-    public synchronized int indexOf(Object o) {
-        return super.indexOf(o);
-    }
-
-    @Override
-    public synchronized boolean contains(Object o) {
-        return super.contains(o);
-    }
-
-    @Override
-    public synchronized void clear() {
-        super.clear();
-    }
 }

@@ -36,7 +36,7 @@ import java.util.ListIterator;
  * @author Alice Quiros <email@aliceq.me>
  * @param <E> the type of elements in this list
  */
-public abstract class AbstractSortedList<E extends Comparable> implements SortedList<E> {
+public abstract class AbstractSortedList<E> implements SortedList<E> {
 
     protected int modCount = 0;
 
@@ -142,7 +142,7 @@ public abstract class AbstractSortedList<E extends Comparable> implements Sorted
      *
      * @param <E> the type of elements in the list
      */
-    protected static class AbstractSortedListIterator<E extends Comparable> implements ListIterator<E> {
+    protected static class AbstractSortedListIterator<E> implements ListIterator<E> {
 
         private int modCount;
         private int cursor;
